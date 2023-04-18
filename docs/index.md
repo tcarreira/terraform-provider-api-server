@@ -13,8 +13,8 @@ description: |-
 ## Example Usage
 
 ```terraform
-provider "apiserver" {
-  # example configuration here
+provider "apitest" {
+  endpoint = "http://localhost:8888"
 }
 ```
 
