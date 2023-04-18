@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/tcarreira/api-server/pkg/client"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -19,7 +21,8 @@ type APIServerProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
-	version string
+	version   string
+	APIClient *client.APIClient
 }
 
 // APIServerProviderModel describes the provider data model.
@@ -53,7 +56,16 @@ func (p *APIServerProvider) Configure(ctx context.Context, req provider.Configur
 	}
 
 	// Configuration values are now available.
-	// if data.Endpoint.IsNull() { /* ... */ }
+	if !data.Endpoint.IsNull() {
+		cli, err := client.NewAPIClient(client.Config{
+			Endpoint: data.Endpoint.String(),
+		})
+		if err != nil {
+			resp.Diagnostics.AddError("failed to create api client", err.Error())
+			return
+		}
+		p.APIClient = cli
+	}
 
 	// Example client configuration for data sources and resources
 	client := http.DefaultClient
