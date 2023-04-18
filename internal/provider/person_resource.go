@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/tcarreira/api-server/pkg/client"
@@ -49,10 +51,16 @@ func (r *PersonResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Person identifier",
 				Computed:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Person name",
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"age": schema.Int64Attribute{
 				MarkdownDescription: "Person age",
@@ -108,7 +116,7 @@ func (r *PersonResource) Create(ctx context.Context, req resource.CreateRequest,
 	data.Id = types.StringValue(strconv.Itoa(person.ID))
 	data.LastUpdated = types.StringValue(time.Now().Format(time.RFC3339))
 
-	tflog.Trace(ctx, "created a resource", map[string]interface{}{
+	tflog.Info(ctx, "created a resource", map[string]interface{}{
 		"person": person,
 		"data":   data,
 	})
@@ -125,7 +133,7 @@ func (r *PersonResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 	id, err := strconv.Atoi(data.Id.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Error converting id to int", err.Error())
+		resp.Diagnostics.AddError("(read) Error converting id to int", err.Error())
 		return
 	}
 	person, err := r.client.People().Get(id)
@@ -141,6 +149,11 @@ func (r *PersonResource) Read(ctx context.Context, req resource.ReadRequest, res
 		data.LastUpdated = types.StringValue(time.Now().Format(time.RFC3339))
 	}
 
+	tflog.Info(ctx, "read a resource", map[string]interface{}{
+		"person": person,
+		"data":   data,
+	})
+
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -154,7 +167,7 @@ func (r *PersonResource) Update(ctx context.Context, req resource.UpdateRequest,
 
 	id, err := strconv.Atoi(data.Id.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Error converting id to int", err.Error())
+		resp.Diagnostics.AddError("(update) Error converting id to int", err.Error())
 		return
 	}
 	person := &apiTypes.Person{
@@ -173,26 +186,31 @@ func (r *PersonResource) Update(ctx context.Context, req resource.UpdateRequest,
 	data.Description = types.StringValue(person.Description)
 	data.LastUpdated = types.StringValue(time.Now().Format(time.RFC3339))
 
+	tflog.Info(ctx, "updated a resource", map[string]interface{}{
+		"person": person,
+		"data":   data,
+	})
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *PersonResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data *PersonResourceModel
-
-	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete person, got error: %s", err))
-	//     return
-	// }
+	id, err := strconv.Atoi(data.Id.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error converting id to int", err.Error())
+		return
+	}
+	err = r.client.People().Delete(id)
+	if err != nil {
+		resp.Diagnostics.AddError("Error deleting person", err.Error())
+		return
+	}
 }
 
 func (r *PersonResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
