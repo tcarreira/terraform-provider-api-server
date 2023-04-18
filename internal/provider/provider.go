@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Ensure ScaffoldingProvider satisfies various provider interfaces.
+// Ensure APIServerProvider satisfies various provider interfaces.
 var _ provider.Provider = &APIServerProvider{}
 
 // APIServerProvider defines the provider implementation.
@@ -31,7 +31,7 @@ type APIServerProviderModel struct {
 }
 
 func (p *APIServerProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "api-server"
+	resp.TypeName = "apiserver"
 	resp.Version = p.version
 }
 
@@ -39,8 +39,8 @@ func (p *APIServerProvider) Schema(ctx context.Context, req provider.SchemaReque
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "Example provider attribute",
-				Optional:            true,
+				MarkdownDescription: "API Server endpoint",
+				Required:            true,
 			},
 		},
 	}
@@ -56,7 +56,7 @@ func (p *APIServerProvider) Configure(ctx context.Context, req provider.Configur
 	}
 
 	// Configuration values are now available.
-	if !data.Endpoint.IsNull() {
+	if p.APIClient == nil && !data.Endpoint.IsNull() {
 		cli, err := client.NewAPIClient(client.Config{
 			Endpoint: data.Endpoint.String(),
 		})

@@ -1,3 +1,3 @@
-provider "scaffolding" {
-  # example configuration here
+provider "apitest" {
+  endpoint = "http://localhost:8080"
 }
