@@ -14,7 +14,7 @@ func TestAccPersonDataSource(t *testing.T) {
 		PreCheck: func() {
 			testAccPreCheck(t)
 			c, _ := client.NewAPIClient(client.Config{Endpoint: "http://localhost:18080"})
-			c.People().Create(&apiTypes.Person{Name: "personXXX", Age: 49})
+			_ = c.People().Create(&apiTypes.Person{Name: "personXXX", Age: 49})
 		},
 		CheckDestroy: func(s *terraform.State) error {
 			c, _ := client.NewAPIClient(client.Config{Endpoint: "http://localhost:18080"})
