@@ -147,23 +147,32 @@ func (r *PersonResource) Read(ctx context.Context, req resource.ReadRequest, res
 
 func (r *PersonResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *PersonResourceModel
-
-	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update person, got error: %s", err))
-	//     return
-	// }
+	id, err := strconv.Atoi(data.Id.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error converting id to int", err.Error())
+		return
+	}
+	person := &apiTypes.Person{
+		Name:        data.Name.ValueString(),
+		Age:         int(data.Age.ValueInt64()),
+		Description: data.Description.ValueString(),
+	}
+	err = r.client.People().Update(id, person)
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting person", err.Error())
+		return
+	}
 
-	// Save updated data into Terraform state
+	data.Name = types.StringValue(person.Name)
+	data.Age = types.Int64Value(int64(person.Age))
+	data.Description = types.StringValue(person.Description)
+	data.LastUpdated = types.StringValue(time.Now().Format(time.RFC3339))
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
