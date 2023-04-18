@@ -18,8 +18,7 @@ func TestAccPersonDataSource(t *testing.T) {
 		},
 		CheckDestroy: func(s *terraform.State) error {
 			c, _ := client.NewAPIClient(client.Config{Endpoint: "http://localhost:18080"})
-			c.People().Delete(0)
-			return nil
+			return c.People().Delete(0)
 		},
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
