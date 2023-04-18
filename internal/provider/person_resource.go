@@ -72,6 +72,9 @@ func (r *PersonResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"last_updated": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -184,7 +187,9 @@ func (r *PersonResource) Update(ctx context.Context, req resource.UpdateRequest,
 	data.Name = types.StringValue(person.Name)
 	data.Age = types.Int64Value(int64(person.Age))
 	data.Description = types.StringValue(person.Description)
-	data.LastUpdated = types.StringValue(time.Now().Format(time.RFC3339))
+	if data.LastUpdated.ValueString() == "" {
+		data.LastUpdated = types.StringValue(time.Now().Format(time.RFC3339))
+	}
 
 	tflog.Info(ctx, "updated a resource", map[string]interface{}{
 		"person": person,
