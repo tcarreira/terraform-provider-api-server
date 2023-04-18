@@ -2,7 +2,6 @@ package provider
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/tcarreira/api-server/pkg/client"
 
@@ -48,9 +47,7 @@ func (p *APIServerProvider) Schema(ctx context.Context, req provider.SchemaReque
 
 func (p *APIServerProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data APIServerProviderModel
-
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -58,7 +55,7 @@ func (p *APIServerProvider) Configure(ctx context.Context, req provider.Configur
 	// Configuration values are now available.
 	if p.APIClient == nil && !data.Endpoint.IsNull() {
 		cli, err := client.NewAPIClient(client.Config{
-			Endpoint: data.Endpoint.String(),
+			Endpoint: data.Endpoint.ValueString(),
 		})
 		if err != nil {
 			resp.Diagnostics.AddError("failed to create api client", err.Error())
@@ -67,21 +64,17 @@ func (p *APIServerProvider) Configure(ctx context.Context, req provider.Configur
 		p.APIClient = cli
 	}
 
-	// Example client configuration for data sources and resources
-	client := http.DefaultClient
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	resp.DataSourceData = p.APIClient
+	resp.ResourceData = p.APIClient
 }
 
 func (p *APIServerProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
-		NewExampleResource,
-	}
+	return []func() resource.Resource{}
 }
 
 func (p *APIServerProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewExampleDataSource,
+		NewPersonDataSource,
 	}
 }
 
