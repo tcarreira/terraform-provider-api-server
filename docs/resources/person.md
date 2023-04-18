@@ -37,4 +37,13 @@ resource "apiserver_person" "example" {
 - `id` (String) Person identifier
 - `last_updated` (String)
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+terraform import resource.apiserver_person.example "<ID>"
+
+# example
+terraform import resource.apiserver_person.example 1
+```
