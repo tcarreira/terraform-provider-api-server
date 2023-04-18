@@ -180,7 +180,7 @@ func (r *PersonResource) Update(ctx context.Context, req resource.UpdateRequest,
 	}
 	err = r.client.People().Update(id, person)
 	if err != nil {
-		resp.Diagnostics.AddError("Error getting person", err.Error())
+		resp.Diagnostics.AddError("Error updating person", err.Error())
 		return
 	}
 
