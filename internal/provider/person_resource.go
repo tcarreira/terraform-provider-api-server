@@ -119,23 +119,29 @@ func (r *PersonResource) Create(ctx context.Context, req resource.CreateRequest,
 
 func (r *PersonResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data *PersonResourceModel
-
-	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
+	id, err := strconv.Atoi(data.Id.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error converting id to int", err.Error())
+		return
+	}
+	person, err := r.client.People().Get(id)
+	if err != nil {
+		resp.Diagnostics.AddError("Error getting person", err.Error())
+		return
+	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read person, got error: %s", err))
-	//     return
-	// }
+	data.Name = types.StringValue(person.Name)
+	data.Age = types.Int64Value(int64(person.Age))
+	data.Description = types.StringValue(person.Description)
+	if data.LastUpdated.ValueString() == "" {
+		data.LastUpdated = types.StringValue(time.Now().Format(time.RFC3339))
+	}
 
-	// Save updated data into Terraform state
+	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
