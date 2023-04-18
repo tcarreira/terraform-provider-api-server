@@ -69,7 +69,9 @@ func (p *APIServerProvider) Configure(ctx context.Context, req provider.Configur
 }
 
 func (p *APIServerProvider) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{}
+	return []func() resource.Resource{
+		NewPersonResource,
+	}
 }
 
 func (p *APIServerProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
