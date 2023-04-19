@@ -72,8 +72,6 @@ jobs:
         cache: true
     - name: install apiserver dependency
       run: go install github.com/tcarreira/api-server@v0.1.1
-    - name: start
-      run: go install github.com/tcarreira/api-server@v0.1.1
     - uses: hashicorp/setup-terraform@633666f66e0061ca3b725c73b2ec20cd13a8fdd1 # v2.0.3
       with:
         terraform_version: ${{ matrix.terraform }}
