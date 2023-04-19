@@ -2,7 +2,7 @@
 
 https://registry.terraform.io/providers/tcarreira/apiserver
 
-Provider for interaction with [api-server](https://github.com/tcarreira/api-server)
+Provider for interacting with [api-server](https://github.com/tcarreira/api-server)
 a simple CRUD API written in Go.
 
 This provider was written for a demo within a presentation (in portuguese):
