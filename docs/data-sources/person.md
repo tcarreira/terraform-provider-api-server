@@ -30,5 +30,3 @@ data "apiserver_person" "example" {
 - `age` (Number) Person age
 - `description` (String) Person description
 - `name` (String) Person name
-
-
